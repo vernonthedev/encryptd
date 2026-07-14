@@ -1,1 +1,1 @@
-# Rust based Env Encryption Package.
+# Rust based Env Encryption Package
