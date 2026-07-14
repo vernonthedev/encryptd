@@ -21,27 +21,26 @@
 ## Install
 
 ```sh
-pnpm install @vernonthedev/encryptd
+pnpm add @vernonthedev/encryptd
 ```
 
-> Published to **GitHub Packages**. Requires `.npmrc`: `@vernonthedev:registry=https://npm.pkg.github.com`
+> Published to **GitHub Packages**.
 
 ## CLI
 
 ```sh
 # Encrypt .env -> .env.enc
-ENV_PASSPHRASE="your-secret" npx secure-env encrypt
+ENV_PASSPHRASE="your-secret" npx encryptd encrypt
 # Decrypt .env.enc -> stdout
-ENV_PASSPHRASE="your-secret" npx secure-env decrypt
+ENV_PASSPHRASE="your-secret" npx encryptd decrypt
 ```
 
 Custom paths:
 
 ```sh
-ENV_PASSPHRASE="s3cr3t" npx secure-env encrypt .env.prod .env.prod.enc
-ENV_PASSPHRASE="s3cr3t" npx secure-env decrypt .env.prod.enc
+ENV_PASSPHRASE="s3cr3t" npx encryptd encrypt .env.prod .env.prod.enc
+ENV_PASSPHRASE="s3cr3t" npx encryptd decrypt .env.prod.enc
 ```
-
 
 ## How It Works
 
@@ -61,17 +60,11 @@ The Rust native addon runs encryption via `aes-gcm` crate, exposed to Node.js th
 | Linux (x64) | `encryptd-linux-x64-gnu` |
 | Windows (x64) | `encryptd-win32-x64-msvc` |
 
-
-
 ## Development
 
 ```sh
 pnpm install
 pnpm napi-build   # compile Rust -> native binary
 pnpm build        # compile TypeScript
-pnpm test         # vitest
+pnpm test         
 ```
-
-## License
-
-MIT

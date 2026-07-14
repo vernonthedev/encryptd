@@ -3,7 +3,7 @@
 ## Install
 
 ```sh
-pnpm install @vernonthedev/encryptd
+pnpm add @vernonthedev/encryptd
 ```
 
 > Published to **GitHub Packages**. Requires `.npmrc`: `@vernonthedev:registry=https://npm.pkg.github.com`
@@ -12,17 +12,17 @@ pnpm install @vernonthedev/encryptd
 
 ```sh
 # Encrypt .env -> .env.enc
-ENV_PASSPHRASE="your-secret" npx secure-env encrypt
+ENV_PASSPHRASE="your-secret" npx encryptd encrypt
 
 # Decrypt .env.enc -> stdout
-ENV_PASSPHRASE="your-secret" npx secure-env decrypt
+ENV_PASSPHRASE="your-secret" npx encryptd decrypt
 ```
 
 Custom paths:
 
 ```sh
-ENV_PASSPHRASE="s3cr3t" npx secure-env encrypt .env.prod .env.prod.enc
-ENV_PASSPHRASE="s3cr3t" npx secure-env decrypt .env.prod.enc
+ENV_PASSPHRASE="s3cr3t" npx encryptd encrypt .env.prod .env.prod.enc
+ENV_PASSPHRASE="s3cr3t" npx encryptd decrypt .env.prod.enc
 ```
 
 ## API
