@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 // ponytail: require() with try/catch is the correct pattern for graceful
 // fallback when the native binary isn't built (CI for non-Rust PRs, dev
-// machines without MSVC). Types come from the napi-rs generated index.d.ts.
+// machines without MSVC).
 let native: typeof import('../index') | undefined;
 
 try {
@@ -40,8 +40,9 @@ describeOrSkip('encryptd', () => {
     expect(native.decryptEnv(payload, PASSPHRASE)).toBe(plain);
   });
 
-  it('encrypted output has iv, content, and tag', () => {
+  it('encrypted output has salt, iv, content, and tag', () => {
     const payload = native.encryptEnv('KEY=val', PASSPHRASE);
+    expect(payload.salt).toBeTruthy();
     expect(payload.iv).toBeTruthy();
     expect(payload.content).toBeTruthy();
     expect(payload.tag).toBeTruthy();

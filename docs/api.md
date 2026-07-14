@@ -1,21 +1,3 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/encryptd-AES--256--GCM%20Env%20Encryption-%2300d4aa?style=for-the-badge&labelColor=%23111111">
-    <img alt="encryptd" src="https://img.shields.io/badge/encryptd-AES--256--GCM%20Env%20Encryption-%2300d4aa?style=for-the-badge&labelColor=%23f0f0f0">
-  </picture>
-</p>
-
-<p align="center">
-  <a href="https://github.com/vernonthedev/encryptd/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/vernonthedev/encryptd/release.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI"></a>
-  <a href="https://github.com/vernonthedev/encryptd/releases"><img src="https://img.shields.io/github/v/release/vernonthedev/encryptd?include_prereleases&label=version&logo=github&style=flat-square" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&style=flat-square" alt="Node"></a>
-  <a href="#"><img src="https://img.shields.io/badge/rust-1.85%2B-dea584?logo=rust&style=flat-square" alt="Rust"></a>
-  <a href="#"><img src="https://img.shields.io/badge/typescript-%23007ACC?logo=typescript&style=flat-square" alt="TypeScript"></a>
-  <a href="#"><img src="https://img.shields.io/badge/macOS-%23000000?logo=apple&style=flat-square" alt="macOS"></a>
-  <a href="#"><img src="https://img.shields.io/badge/linux-%23FCC624?logo=linux&style=flat-square" alt="Linux"></a>
-  <a href="#"><img src="https://img.shields.io/badge/windows-%230078D6?logo=windows&style=flat-square" alt="Windows"></a>
-</p>
-
 **encryptd** encrypts and decrypts `.env` files using **AES-256-GCM** via a Rust native addon (napi-rs). Works as both a library and a CLI.
 
 ## Install
@@ -31,6 +13,7 @@ pnpm install @vernonthedev/encryptd
 ```sh
 # Encrypt .env -> .env.enc
 ENV_PASSPHRASE="your-secret" npx secure-env encrypt
+
 # Decrypt .env.enc -> stdout
 ENV_PASSPHRASE="your-secret" npx secure-env decrypt
 ```
@@ -42,6 +25,33 @@ ENV_PASSPHRASE="s3cr3t" npx secure-env encrypt .env.prod .env.prod.enc
 ENV_PASSPHRASE="s3cr3t" npx secure-env decrypt .env.prod.enc
 ```
 
+## API
+
+```ts
+import { config } from '@vernonthedev/encryptd';
+
+// Loads .env.enc, decrypts it, sets process.env
+const env = config({ passphrase: 'your-secret' });
+console.log(env.DATABASE_URL);
+```
+
+### `config(options?)`
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `path` | `".env.enc"` | Path to encrypted file |
+| `passphrase` | `process.env.ENV_PASSPHRASE` | Encryption passphrase |
+| `override` | `false` | Overwrite existing `process.env` keys |
+
+Returns `Record<string, string>` of decrypted env vars.
+
+### `secure-env encrypt [input] [output]`
+
+Reads a plaintext `.env`, encrypts it with `ENV_PASSPHRASE`, writes JSON output.
+
+### `secure-env decrypt [input]`
+
+Reads an encrypted `.env.enc`, decrypts it, prints to stdout.
 
 ## How It Works
 
@@ -61,7 +71,35 @@ The Rust native addon runs encryption via `aes-gcm` crate, exposed to Node.js th
 | Linux (x64) | `encryptd-linux-x64-gnu` |
 | Windows (x64) | `encryptd-win32-x64-msvc` |
 
+## API Reference
 
+```typescript
+// @vernonthedev/encryptd
+
+interface EnvPayload {
+  version?: number;
+  salt: string;     // hex-encoded PBKDF2 salt
+  iv: string;       // hex-encoded nonce
+  content: string;  // hex-encoded ciphertext
+  tag: string;      // hex-encoded GCM auth tag
+}
+
+interface ConfigOptions {
+  path?: string;
+  passphrase?: string;
+  override?: boolean;
+}
+
+// Low-level Rust bridge
+function encryptEnv(plainText: string, passphrase: string): EnvPayload;
+function decryptEnv(payload: EnvPayload, passphrase: string): string;
+
+// High-level loader
+function config(options?: ConfigOptions): Record<string, string>;
+
+// CLI dispatcher
+function runCli(args: string[]): void;
+```
 
 ## Development
 
@@ -71,7 +109,3 @@ pnpm napi-build   # compile Rust -> native binary
 pnpm build        # compile TypeScript
 pnpm test         # vitest
 ```
-
-## License
-
-MIT

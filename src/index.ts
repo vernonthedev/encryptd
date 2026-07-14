@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { encryptEnv, decryptEnv } from './native';
+import { encryptEnv, decryptEnv } from '../index';
 import type { EnvPayload, ConfigOptions } from './types';
 
 const ENV_FORMAT_VERSION = 1;
@@ -56,8 +56,7 @@ export function runCli(args: string[]) {
     if (!existsSync(inputFile)) throw new Error(`[SrcIndex] ${inputFile} not found.`);
 
     const plainText = readFileSync(inputFile, 'utf-8');
-    const payload = encryptEnv(plainText, passphrase);
-    payload.version = ENV_FORMAT_VERSION;
+    const payload: EnvPayload = { ...encryptEnv(plainText, passphrase), version: ENV_FORMAT_VERSION };
     writeFileSync(outputFile, JSON.stringify(payload, null, 2), 'utf-8');
     console.log(`[SrcIndex] Encrypted ${inputFile} -> ${outputFile}`);
   } else if (command === 'decrypt') {

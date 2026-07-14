@@ -1,5 +1,6 @@
 export interface EnvPayload {
   version?: number;
+  salt: string;
   iv: string;
   content: string;
   tag: string;
