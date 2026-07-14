@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import type { EnvPayload } from '../src/native';
 
-// ponytail: require() with try/catch is the correct pattern for graceful
-// fallback when the native binary isn't built (CI for non-Rust PRs, dev
-// machines without MSVC).
-let native: typeof import('../index') | undefined;
+// ponytail: require with try/catch for graceful fallback when
+// the native binary isn't built (non-Rust CI, dev without MSVC).
+type Native = { encryptEnv: (s: string, p: string) => EnvPayload; decryptEnv: (p: EnvPayload, k: string) => string };
+let native: Native | undefined;
 
 try {
   native = require('../index');

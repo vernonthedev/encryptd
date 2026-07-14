@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { encryptEnv, decryptEnv } from '../index';
+import { encryptEnv, decryptEnv } from './native';
 import type { EnvPayload, ConfigOptions } from './types';
 
 const ENV_FORMAT_VERSION = 1;
