@@ -22,6 +22,8 @@ permissions:
   pull-requests: write
   actions: read
 
+# Workflow updated to fix indentation and trigger issues
+
 jobs:
   check-ci:
     name: Verify CI passed
