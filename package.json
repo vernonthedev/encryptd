@@ -30,11 +30,12 @@
     ]
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
+      "registry": "https://npm.pkg.github.com",
+      "access": "restricted"
+    },
   "repository": {
     "type": "git",
-    "url": "git://github.com/vernonthedev/encryptd.git"
+      "url": "https://github.com/vernonthedev/encryptd.git"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
