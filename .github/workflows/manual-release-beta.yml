@@ -129,16 +129,18 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-          if [ "$BUMP" = "major" ]; then
-            NEW_VERSION="$((MAJOR + 1)).0.0"
-          elif [ "$BUMP" = "minor" ]; then
-            NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
-          else
-            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-          fi
-          NEW_VERSION="${NEW_VERSION}-beta.0"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+                # Strip pre-release suffix (e.g., -beta.0) for version arithmetic
+                BASE_VERSION="${CURRENT_VERSION%%-*}"
+                IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+                if [ "$BUMP" = "major" ]; then
+                  NEW_VERSION="$((MAJOR + 1)).0.0"
+                elif [ "$BUMP" = "minor" ]; then
+                  NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+                else
+                  NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+                fi
+                NEW_VERSION="${NEW_VERSION}-beta.0"
+                echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update version files
         run: |
