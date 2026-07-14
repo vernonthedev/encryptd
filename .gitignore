@@ -40,7 +40,6 @@ lib/
 *.tsbuildinfo
 rust/target/
 rust/*.node
-rust/index.js
 rust/index.d.ts
 
 # ==============================================================================
