@@ -71,6 +71,8 @@
 
 ### Bug Fixes
 
+* reset package.json version to 0.0.1 baseline ([328913c](https://github.com/vernonthedev/encryptd/commit/328913c8e8b0906d2a8b129305aa49f4af8b6749)) - by vernonthedev
+* use GITHUB_TOKEN for gh release create (Create GitHub Release) ([6d38b35](https://github.com/vernonthedev/encryptd/commit/6d38b35d8af43594ed5db08104a94a9797b7a8c0)) - by vernonthedev
 * stop ignoring RELEASE_NOTES.md so the release commit succeeds ([f34f963](https://github.com/vernonthedev/encryptd/commit/f34f9632ecf896c4b686d1838c4228f8afc8294d)) - by vernonthedev
 * reset beta release pipeline to a clean 0.0.1 baseline ([b7b802d](https://github.com/vernonthedev/encryptd/commit/b7b802d2d669541680bb1922f6e2a0875a5c6407)) - by vernonthedev
 
