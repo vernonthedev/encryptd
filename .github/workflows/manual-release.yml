@@ -22,8 +22,6 @@ permissions:
   pull-requests: write
   actions: read
 
-# Updated to fix workflow_dispatch trigger recognition
-
 jobs:
   check-ci:
     name: Verify CI passed
@@ -42,20 +40,20 @@ jobs:
               status: 'completed',
               per_page: 1
             });
-            
+
             if (runs.workflow_runs.length === 0) {
               core.setFailed('No CI runs found on main branch');
               return;
             }
-            
+
             const latestRun = runs.workflow_runs[0];
             console.log(`Latest CI run: ${latestRun.html_url} - ${latestRun.conclusion}`);
-            
+
             if (latestRun.conclusion !== 'success') {
               core.setFailed(`Latest CI run failed (${latestRun.conclusion}). Manual release blocked.`);
               return;
             }
-            
+
             console.log('Latest CI run passed - proceeding with release');
 
   version-bump:
@@ -93,7 +91,7 @@ jobs:
         id: changelog
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -n "$LAST_TAG" ]; then
             echo "Last tag: $LAST_TAG"
             pnpm exec conventional-changelog -p ./.changelogrc.js -i CHANGELOG.md -s -r 0 --from $LAST_TAG
@@ -101,7 +99,7 @@ jobs:
             echo "No previous tag found, generating full changelog"
             pnpm exec conventional-changelog -p ./.changelogrc.js -i CHANGELOG.md -s -r 0 --first-release
           fi
-          
+
           NEW_CHANGELOG=$(cat CHANGELOG.md)
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$NEW_CHANGELOG" >> $GITHUB_OUTPUT
@@ -111,26 +109,26 @@ jobs:
         id: version
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -n "$LAST_TAG" ]; then
             COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"%s" --reverse)
           else
             COMMITS=$(git log --pretty=format:"%s" --reverse)
           fi
-          
+
           echo "Commits since last tag:"
           echo "$COMMITS"
-          
+
           BUMP="patch"
           echo "$COMMITS" | grep -q "^feat!" && BUMP="major"
           echo "$COMMITS" | grep -q "^feat" && [ "$BUMP" != "major" ] && BUMP="minor"
           echo "$COMMITS" | grep -q "^fix" && [ "$BUMP" = "patch" ] && BUMP="patch"
-          
+
           echo "bump=$BUMP" >> $GITHUB_OUTPUT
-          
+
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          
+
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
           if [ "$BUMP" = "major" ]; then
             NEW_VERSION="$((MAJOR + 1)).0.0"
@@ -145,16 +143,16 @@ jobs:
       - name: Update version files
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
-          
+
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             pkg.version = '$NEW_VERSION';
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
-          
+
           sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" rust/Cargo.toml
-          
+
           echo "Updated to version: $NEW_VERSION"
 
       - name: Commit version bump
@@ -162,14 +160,13 @@ jobs:
           git add package.json rust/Cargo.toml CHANGELOG.md
           git commit -m "chore: release ${{ steps.version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
 
-            - name: Create and push version tag
-              run: |
-                git tag v${{ steps.version.outputs.new_version }}
-                git push origin v${{ steps.version.outputs.new_version }}
+      - name: Create and push version tag
+        run: |
+          git tag v${{ steps.version.outputs.new_version }}
+          git push origin v${{ steps.version.outputs.new_version }}
 
-            - name: Push version bump
-              run: git push origin main
-              run: git push origin main
+      - name: Push version bump
+        run: git push origin main
 
   release:
     name: Build Platform Package
@@ -190,14 +187,14 @@ jobs:
             target: x86_64-pc-windows-msvc
 
     steps:
-          - name: Checkout version tag
+      - name: Checkout version tag
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-              ref: v${{ needs.version-bump.outputs.new_version }}
+          ref: v${{ needs.version-bump.outputs.new_version }}
 
-          - name: Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
