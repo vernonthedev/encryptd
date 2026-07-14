@@ -1,0 +1,19 @@
+{
+  "name": "encryptd",
+  "version": "0.0.1",
+  "description": "Rust based Env Encryption Package.",
+  "main": "index.js",
+  "author": "vernonthedev",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.13.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module"
+}
