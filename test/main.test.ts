@@ -8,8 +8,9 @@ let native: Native | undefined;
 
 try {
   native = require('../index');
-} catch {
-  // native binding not built — all tests below will skip
+} catch (e) {
+  try { native = require('../rust/index'); } catch {}
+  if (!native) console.warn('[Test] native binding unavailable, skipping:', (e as Error)?.message);
 }
 
 const PASSPHRASE = 'test-passphrase-2024';

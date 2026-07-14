@@ -9,7 +9,7 @@ export declare function encryptEnv(plainText: string, passphrase: string): EnvPa
 export declare function decryptEnv(payload: EnvPayload, passphrase: string): string;
 
 let binding: Record<string, unknown> | undefined;
-try { binding = require('../index') } catch { /* native binary not built */ }
+try { binding = require('../index'); } catch { try { binding = require('../rust/index'); } catch { /* binary not built */ } }
 
 if (binding) {
   exports.encryptEnv = binding.encryptEnv as typeof encryptEnv;
