@@ -67,12 +67,12 @@ pub fn decrypt_env(payload: EnvPayload, passphrase: String) -> Result<String> {
     let key = aes_gcm::Key::<Aes256Gcm>::from_slice(&key_bytes);
     let cipher = Aes256Gcm::new(key);
 
-    let nonce_bytes = hex::decode(&payload.iv).map_err(|e| Error::from_reason(e.to_string()))?;
+    let nonce_bytes = hex::decode(&payload.iv).map_err(|e| Error::from_reason(format!("[RustLib] Invalid IV hex: {}", e)))?;
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     let mut ciphertext =
-        hex::decode(&payload.content).map_err(|e| Error::from_reason(e.to_string()))?;
-    let tag = hex::decode(&payload.tag).map_err(|e| Error::from_reason(e.to_string()))?;
+        hex::decode(&payload.content).map_err(|e| Error::from_reason(format!("[RustLib] Invalid content hex: {}", e)))?;
+    let tag = hex::decode(&payload.tag).map_err(|e| Error::from_reason(format!("[RustLib] Invalid tag hex: {}", e)))?;
 
     /*
      * Reconstruct ciphertext + tag format
@@ -81,7 +81,7 @@ pub fn decrypt_env(payload: EnvPayload, passphrase: String) -> Result<String> {
 
     match cipher.decrypt(nonce, ciphertext.as_ref()) {
         Ok(plaintext) => {
-            String::from_utf8(plaintext).map_err(|e| Error::from_reason(e.to_string()))
+            String::from_utf8(plaintext).map_err(|e| Error::from_reason(format!("[RustLib] Invalid UTF-8: {}", e)))
         }
         Err(e) => Err(Error::from_reason(format!(
             "[RustLib] Decryption failed. Wrong key or tampered file. {}",

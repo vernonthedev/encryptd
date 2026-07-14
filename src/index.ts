@@ -11,17 +11,17 @@ export function config(options: ConfigOptions = {}): Record<string, string> {
   const envPath = options.path || '.env.enc';
   const passphrase = options.passphrase || process.env.ENV_PASSPHRASE;
 
-  if (!passphrase) throw new Error('ENV_PASSPHRASE not set. Pass it via options.passphrase or ENV_PASSPHRASE env var.');
+  if (!passphrase) throw new Error('[SrcIndex] ENV_PASSPHRASE not set. Pass it via options.passphrase or ENV_PASSPHRASE env var.');
 
   const fullPath = resolve(process.cwd(), envPath);
-  if (!existsSync(fullPath)) throw new Error(`Encrypted env file not found at ${fullPath}`);
+  if (!existsSync(fullPath)) throw new Error(`[SrcIndex] Encrypted env file not found at ${fullPath}`);
 
   const raw = readFileSync(fullPath, 'utf-8');
   let payload: EnvPayload;
   try {
     payload = JSON.parse(raw);
   } catch {
-    throw new Error(`Invalid encrypted env file at ${fullPath}. Expected valid JSON.`);
+    throw new Error(`[SrcIndex] Invalid encrypted env file at ${fullPath}. Expected valid JSON.`);
   }
 
   const decryptedData = decryptEnv(payload, passphrase);
@@ -52,27 +52,27 @@ export function runCli(args: string[]) {
     const outputFile = args[2] || '.env.enc';
     const passphrase = process.env.ENV_PASSPHRASE;
 
-    if (!passphrase) throw new Error('Set ENV_PASSPHRASE env var.');
-    if (!existsSync(inputFile)) throw new Error(`${inputFile} not found.`);
+    if (!passphrase) throw new Error('[SrcIndex] Set ENV_PASSPHRASE env var.');
+    if (!existsSync(inputFile)) throw new Error(`[SrcIndex] ${inputFile} not found.`);
 
     const plainText = readFileSync(inputFile, 'utf-8');
     const payload = encryptEnv(plainText, passphrase);
     payload.version = ENV_FORMAT_VERSION;
     writeFileSync(outputFile, JSON.stringify(payload, null, 2), 'utf-8');
-    console.log(`[encryptd] Encrypted ${inputFile} -> ${outputFile}`);
+    console.log(`[SrcIndex] Encrypted ${inputFile} -> ${outputFile}`);
   } else if (command === 'decrypt') {
     const inputFile = args[1] || '.env.enc';
     const passphrase = process.env.ENV_PASSPHRASE;
 
-    if (!passphrase) throw new Error('Set ENV_PASSPHRASE env var.');
-    if (!existsSync(inputFile)) throw new Error(`${inputFile} not found.`);
+    if (!passphrase) throw new Error('[SrcIndex] Set ENV_PASSPHRASE env var.');
+    if (!existsSync(inputFile)) throw new Error(`[SrcIndex] ${inputFile} not found.`);
 
     const raw = readFileSync(inputFile, 'utf-8');
     const payload: EnvPayload = JSON.parse(raw);
     const plainText = decryptEnv(payload, passphrase);
-    console.log(plainText);
+    console.log(`[SrcIndex] ${plainText}`);
   } else {
-    console.log('Usage: ENV_PASSPHRASE="..." secure-env encrypt [.env] [.env.enc]');
-    console.log('       ENV_PASSPHRASE="..." secure-env decrypt [.env.enc]');
+    console.log('[SrcIndex] Usage: ENV_PASSPHRASE="..." secure-env encrypt [.env] [.env.enc]');
+    console.log('[SrcIndex]        ENV_PASSPHRASE="..." secure-env decrypt [.env.enc]');
   }
 }
