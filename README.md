@@ -8,12 +8,8 @@
 <p align="center">
   <a href="https://github.com/vernonthedev/encryptd/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vernonthedev/encryptd/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI"></a>
   <a href="https://github.com/vernonthedev/encryptd/releases"><img src="https://img.shields.io/github/v/release/vernonthedev/encryptd?include_prereleases&label=version&logo=github&style=flat-square" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&style=flat-square" alt="Node"></a>
   <a href="#"><img src="https://img.shields.io/badge/rust-1.85%2B-dea584?logo=rust&style=flat-square" alt="Rust"></a>
   <a href="#"><img src="https://img.shields.io/badge/typescript-%23007ACC?logo=typescript&style=flat-square" alt="TypeScript"></a>
-  <a href="#"><img src="https://img.shields.io/badge/macOS-%23000000?logo=apple&style=flat-square" alt="macOS"></a>
-  <a href="#"><img src="https://img.shields.io/badge/linux-%23FCC624?logo=linux&style=flat-square" alt="Linux"></a>
-  <a href="#"><img src="https://img.shields.io/badge/windows-%230078D6?logo=windows&style=flat-square" alt="Windows"></a>
 </p>
 
 **encryptd** encrypts and decrypts `.env` files using **AES-256-GCM** via a Rust native addon (napi-rs). Works as both a library and a CLI.
