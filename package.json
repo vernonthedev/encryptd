@@ -36,11 +36,5 @@
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
-  },
-  "optionalDependencies": {
-    "@vernonthedev/encryptd-darwin-arm64": "0.0.1",
-    "@vernonthedev/encryptd-darwin-x64": "0.0.1",
-    "@vernonthedev/encryptd-linux-x64-gnu": "0.0.1",
-    "@vernonthedev/encryptd-win32-x64-msvc": "0.0.1"
   }
 }
