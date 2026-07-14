@@ -9,22 +9,9 @@
     "secure-env": "dist/cli.js"
   },
   "scripts": {
-    "test": "Testing...",
     "build": "tsc",
     "prepublishOnly": "pnpm run build"
   },
-   "files": [
-    "dist/"
-  ],
-  "keywords": ["env", "encrypt", "typescript"],
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.13.0",
-      "onFail": "download"
-    }
-  },
-  "type": "module",
   "devDependencies": {
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2"
