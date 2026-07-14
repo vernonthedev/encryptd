@@ -56,7 +56,7 @@ jobs:
             console.log('Latest CI run passed - proceeding with release');
 
   release:
-    name: Create Beta Release
+    name: Build Platform Package
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     needs: check-ci
@@ -72,6 +72,9 @@ jobs:
             target: aarch64-apple-darwin
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
 
     steps:
       - name: Checkout repository
@@ -202,7 +205,14 @@ jobs:
       - name: Prepare npm packages
         run: pnpm exec napi pre-publish
 
-      - name: Publish platform package
+      - name: Upload platform artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-${{ matrix.target }}
+          path: npm/*.tgz
+          retention-days: 1
+
+      - name: Publish platform package to npm registry
         run: |
           for pkg in npm/*.tgz; do
             echo "Publishing $pkg"
@@ -211,20 +221,42 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create GitHub Release
-        if: ${{ github.event.inputs.createRelease && matrix.os == 'ubuntu-latest' }}
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [check-ci, release]
+    if: ${{ github.event.inputs.createRelease }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download all platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: npm-package-*
+          path: all-artifacts
+          merge-multiple: false
+
+      - name: List downloaded artifacts
+        run: |
+          find all-artifacts -name "*.tgz" | sort
+
+      - name: Create GitHub Release with all platform assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.new_version }}
-          name: v${{ steps.version.outputs.new_version }}
+          tag_name: v${{ needs.release.outputs.new_version }}
+          name: v${{ needs.release.outputs.new_version }}
           body_path: CHANGELOG.md
           prerelease: true
           make_latest: false
           generate_release_notes: false
+          files: all-artifacts/**/*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push to main
-        if: matrix.os == 'ubuntu-latest'
         run: |
           git push origin main
