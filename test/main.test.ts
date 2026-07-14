@@ -9,8 +9,11 @@ let native: Native | undefined;
 try {
   native = require('../rust/index');
 } catch (e) {
-  try { native = require('../index'); } catch {}
-  if (!native) console.warn('[Test] native binding unavailable, skipping:', (e as Error)?.message);
+  const err1 = (e as Error)?.message;
+  try { native = require('../index'); } catch (e2) {
+    console.error('[Test] require ../rust/index failed:', err1);
+    console.error('[Test] require ../index failed:', (e2 as Error)?.message);
+  }
 }
 
 const PASSPHRASE = 'test-passphrase-2024';

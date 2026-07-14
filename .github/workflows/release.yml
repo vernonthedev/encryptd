@@ -17,11 +17,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
           version: latest
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -38,6 +38,9 @@ jobs:
 
       - name: Build NAPI Rust binary
         run: pnpm napi-build
+
+      - name: Debug - list generated files
+        run: node -e "const f=require('fs');['.','rust'].forEach(d=>{try{console.log('=== '+d+' ===',f.readdirSync(d))}catch(e){console.log('=== '+d+' === ERROR:',e.message)}})"
 
       - name: Build TypeScript
         run: pnpm build
@@ -66,11 +69,11 @@ jobs:
             target: x86_64-pc-windows-msvc
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
           version: latest
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
@@ -104,11 +107,11 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
           version: latest
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
