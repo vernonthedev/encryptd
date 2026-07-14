@@ -23,7 +23,7 @@ jobs:
       - name: Check latest CI run on main
         id: check-ci
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           RUN=$(gh run list \
             --repo "$GITHUB_REPOSITORY" \
@@ -246,7 +246,7 @@ jobs:
 
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${{ needs.version-bump.outputs.tag }}" \
             --repo "$GITHUB_REPOSITORY" \
