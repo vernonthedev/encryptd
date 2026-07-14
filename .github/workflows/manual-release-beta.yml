@@ -223,21 +223,43 @@ jobs:
 
       - name: Fix platform package.json for GitHub Packages
         run: |
-          for pkg in npm/*.tgz; do
-            echo "Fixing $pkg"
-            tar -xzf "$pkg" -C /tmp/pkg-tmp
-            # Remove repository field from package.json to prevent npm from trying git SSH
-            node -e "
-              const fs = require('fs');
-              const pkg = JSON.parse(fs.readFileSync('/tmp/pkg-tmp/package/package.json', 'utf8'));
-              delete pkg.repository;
-              pkg.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'restricted' };
-              fs.writeFileSync('/tmp/pkg-tmp/package/package.json', JSON.stringify(pkg, null, 2) + '\n');
-            "
-            # Repackage
-            tar -czf "$pkg" -C /tmp/pkg-tmp package
-            rm -rf /tmp/pkg-tmp
-          done
+                node -e "
+                  const fs = require('fs');
+                  const path = require('path');
+                  const { execSync } = require('child_process');
+            
+                  const npmDir = 'npm';
+                  if (!fs.existsSync(npmDir)) {
+                    console.log('npm directory does not exist');
+                    process.exit(0);
+                  }
+            
+                  const files = fs.readdirSync(npmDir).filter(f => f.endsWith('.tgz'));
+                  console.log('Found packages:', files);
+            
+                  for (const file of files) {
+                    const pkgPath = path.join(npmDir, file);
+                    console.log('Fixing', pkgPath);
+              
+                    // Extract
+                    const tmpDir = '/tmp/pkg-tmp-' + Date.now();
+                    fs.mkdirSync(tmpDir, { recursive: true });
+                    execSync('tar -xzf ' + pkgPath + ' -C ' + tmpDir, { stdio: 'inherit' });
+              
+                    // Fix package.json
+                    const pkgJsonPath = path.join(tmpDir, 'package', 'package.json');
+                    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
+                    delete pkg.repository;
+                    pkg.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'restricted' };
+                    fs.writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + '\n');
+              
+                    // Repackage
+                    execSync('tar -czf ' + pkgPath + ' -C ' + tmpDir + ' package', { stdio: 'inherit' });
+              
+                    // Cleanup
+                    fs.rmSync(tmpDir, { recursive: true, force: true });
+                  }
+                "
 
       - name: Upload platform artifact
         uses: actions/upload-artifact@v4
@@ -250,10 +272,26 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for pkg in npm/*.tgz; do
-            echo "Publishing $pkg"
-            npm publish "$pkg" --registry=https://npm.pkg.github.com --tag=beta
-          done
+                node -e "
+                  const fs = require('fs');
+                  const path = require('path');
+                  const { execSync } = require('child_process');
+            
+                  const npmDir = 'npm';
+                  if (!fs.existsSync(npmDir)) {
+                    console.log('npm directory does not exist');
+                    process.exit(0);
+                  }
+            
+                  const files = fs.readdirSync(npmDir).filter(f => f.endsWith('.tgz'));
+                  console.log('Found packages to publish:', files);
+            
+                  for (const file of files) {
+                    const pkgPath = path.join(npmDir, file);
+                    console.log('Publishing', pkgPath);
+                    execSync('npm publish ' + pkgPath + ' --registry=https://npm.pkg.github.com --tag=beta', { stdio: 'inherit' });
+                  }
+                "
 
   create-release:
     name: Create GitHub Release
