@@ -18,9 +18,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'pnpm'
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install Linux deps
@@ -29,14 +33,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Build NAPI Rust binary
-        run: npx @napi-rs/cli build --manifest-path rust/Cargo.toml --platform --release
+        run: pnpm napi-build
 
       - name: Build TypeScript
-        run: npx tsc
+        run: pnpm build
 
       - name: Run tests
-        run: npx vitest run
+        run: pnpm test
 
   build-and-publish:
     if: github.event_name == 'release'
@@ -60,10 +67,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
+          cache: 'pnpm'
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -74,11 +85,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Build NAPI Rust binary
-        run: npx @napi-rs/cli build --manifest-path rust/Cargo.toml --platform --release
+        run: pnpm napi-build
 
       - name: Publish platform-specific package
-        run: npx @napi-rs/cli publish --platform --release --no-gh-release
+        run: pnpm exec napi publish --platform --release --no-gh-release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -91,11 +105,17 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Publish Main Package
-        run: npx @napi-rs/cli publish --no-gh-release
+        run: pnpm exec napi publish --no-gh-release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
