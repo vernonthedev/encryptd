@@ -1,12 +1,9 @@
-// ponytail: native binding require() is called at module scope. If the
-// native binary hasn't been built, all tests skip. Upgrade: generate proper
-// TS bindings from napi-rs and import those instead of require().
 import { describe, it, expect } from 'vitest';
 
-let native: {
-  encryptEnv: (plainText: string, passphrase: string) => { iv: string; content: string; tag: string };
-  decryptEnv: (payload: { iv: string; content: string; tag: string }, passphrase: string) => string;
-};
+// ponytail: require() with try/catch is the correct pattern for graceful
+// fallback when the native binary isn't built (CI for non-Rust PRs, dev
+// machines without MSVC). Types come from the napi-rs generated index.d.ts.
+let native: typeof import('../index') | undefined;
 
 try {
   native = require('../index');
