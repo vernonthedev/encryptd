@@ -71,6 +71,20 @@
 
 ### Bug Fixes
 
+* stop ignoring RELEASE_NOTES.md so the release commit succeeds ([f34f963](https://github.com/vernonthedev/encryptd/commit/f34f9632ecf896c4b686d1838c4228f8afc8294d)) - by vernonthedev
+* reset beta release pipeline to a clean 0.0.1 baseline ([b7b802d](https://github.com/vernonthedev/encryptd/commit/b7b802d2d669541680bb1922f6e2a0875a5c6407)) - by vernonthedev
+
+  - Remove changesets; replace broken conventional-changelog stack (Handlebars
+    writer vs new-arch preset incompatibility) with a dependency-free changelog
+    generator that renders Conventional Commit sections, full commit bodies, and
+    the real git author.
+  - Reset versions to 0.0.1 (package.json) / 0.0.1 (Cargo.toml).
+  - Rewrite manual-release-beta.yml: fix CI gate (reference ci.yml by name),
+    auto commit-driven beta versioning with collision-safe -beta.N counter,
+    publish the main package to GitHub Packages (--tag beta), attach per-OS
+    built artifacts to the GitHub Release, and drop publishConfig.access:
+    restricted which GitHub Packages rejects.
+  - Add files whitelist so dist/ and the native binary ship in the package.
 * **ci:** remove merge-multiple to prevent artifact overwrite in release job ([06b749c](https://github.com/vernonthedev/encryptd/commit/06b749cb71a2bed7ceaeeb06c0c5ec5ab25c028f)) - by vernonthedev
 
   When downloading multiple artifacts with the same internal file structure (npm/*.tgz),
