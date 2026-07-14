@@ -22,6 +22,8 @@ permissions:
   pull-requests: write
   actions: read
 
+# Updated to fix workflow_dispatch trigger recognition
+
 jobs:
   check-ci:
     name: Verify CI passed
