@@ -169,6 +169,7 @@ jobs:
 
             - name: Push version bump
               run: git push origin main
+              run: git push origin main
 
   release:
     name: Build Platform Package
