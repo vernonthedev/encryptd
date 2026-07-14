@@ -239,7 +239,25 @@ jobs:
       - name: Prepare npm packages
         run: pnpm exec napi pre-publish --no-gh-release
 
-      - name: Upload platform artifact
+            - name: Fix platform package.json for GitHub Packages
+              run: |
+                for pkg in npm/*.tgz; do
+                  echo "Fixing $pkg"
+                  tar -xzf "$pkg" -C /tmp/pkg-tmp
+                  # Remove repository field from package.json to prevent npm from trying git SSH
+                  node -e "
+                    const fs = require('fs');
+                    const pkg = JSON.parse(fs.readFileSync('/tmp/pkg-tmp/package/package.json', 'utf8'));
+                    delete pkg.repository;
+                    pkg.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'restricted' };
+                    fs.writeFileSync('/tmp/pkg-tmp/package/package.json', JSON.stringify(pkg, null, 2) + '\n');
+                  "
+                  # Repackage
+                  tar -czf "$pkg" -C /tmp/pkg-tmp package
+                  rm -rf /tmp/pkg-tmp
+                done
+
+            - name: Upload platform artifact
         uses: actions/upload-artifact@v4
         with:
           name: npm-package-${{ matrix.target }}
