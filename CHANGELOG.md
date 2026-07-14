@@ -1,4 +1,12 @@
 
+## 0.3.0-beta.0 (2026-07-14)
+
+* chore: force workflow refresh with comment ([08cfd81](https://github.com/vernonthedev/encryptd/commit/08cfd81))
+* chore: release 0.3.0-beta.0 [skip ci] ([029058b](https://github.com/vernonthedev/encryptd/commit/029058b))
+* chore: remove workflow to force re-registration ([493eb1f](https://github.com/vernonthedev/encryptd/commit/493eb1f))
+* feat: add manual release beta workflow with correct structure ([4de615a](https://github.com/vernonthedev/encryptd/commit/4de615a))
+* fix: add --no-gh-release flag to napi pre-publish ([ed69190](https://github.com/vernonthedev/encryptd/commit/ed69190)), closes [--no-#release](https://github.com/--no-/issues/release) [--no-#release](https://github.com/--no-/issues/release)
+
 ## 0.2.0-beta.0 (2026-07-14)
 
 * chore: add typescript devDependencies and .gitignore ([ffda887](https://github.com/vernonthedev/encryptd/commit/ffda887))
