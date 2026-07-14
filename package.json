@@ -1,13 +1,22 @@
 {
   "name": "encryptd",
   "version": "0.0.1",
-  "description": "Rust based Env Encryption Package.",
-  "main": "index.js",
   "author": "vernonthedev",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Rust based Env Encryption Package.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "secure-env": "dist/cli.js"
   },
-  "keywords": [],
+  "scripts": {
+    "test": "Testing...",
+    "build": "tsc",
+    "prepublishOnly": "pnpm run build"
+  },
+   "files": [
+    "dist/"
+  ],
+  "keywords": ["env", "encrypt", "typescript"],
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
