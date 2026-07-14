@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14, windows-2022]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install Linux deps
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config
@@ -56,13 +56,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
+          - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: macos-14
+          - os: macos-latest
             target: x86_64-apple-darwin
-          - os: macos-14
+          - os: macos-latest
             target: aarch64-apple-darwin
-          - os: windows-2022
+          - os: windows-latest
             target: x86_64-pc-windows-msvc
 
     steps:
@@ -80,7 +80,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install Linux deps
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config
@@ -92,7 +92,7 @@ jobs:
         run: pnpm napi-build
 
       - name: Publish platform-specific package
-        run: pnpm exec napi publish --manifest-path rust/Cargo.toml --platform --release --no-gh-release
+        run: pnpm exec napi publish --platform --release --no-gh-release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -116,6 +116,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Publish Main Package
-        run: pnpm exec napi publish --manifest-path rust/Cargo.toml --no-gh-release
+        run: pnpm exec napi publish --no-gh-release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

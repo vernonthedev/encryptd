@@ -7,9 +7,9 @@ type Native = { encryptEnv: (s: string, p: string) => EnvPayload; decryptEnv: (p
 let native: Native | undefined;
 
 try {
-  native = require('../index');
+  native = require('../rust/index');
 } catch (e) {
-  try { native = require('../rust/index'); } catch {}
+  try { native = require('../index'); } catch {}
   if (!native) console.warn('[Test] native binding unavailable, skipping:', (e as Error)?.message);
 }
 
