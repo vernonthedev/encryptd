@@ -236,7 +236,6 @@ jobs:
         with:
           pattern: platform-package-*
           path: ./artifacts
-          merge-multiple: true
 
       - name: Download release notes
         uses: actions/download-artifact@v4
@@ -253,4 +252,4 @@ jobs:
             --title "Release ${{ needs.version-bump.outputs.tag }}" \
             --notes-file ./notes/RELEASE_NOTES.md \
             --prerelease \
-            ./artifacts/*.tgz
+            ./artifacts/**/*.tgz
