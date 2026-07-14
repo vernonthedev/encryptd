@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/vernonthedev/encryptd/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/vernonthedev/encryptd/release.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI"></a>
+  <a href="https://github.com/vernonthedev/encryptd/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vernonthedev/encryptd/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI"></a>
   <a href="https://github.com/vernonthedev/encryptd/releases"><img src="https://img.shields.io/github/v/release/vernonthedev/encryptd?include_prereleases&label=version&logo=github&style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&style=flat-square" alt="Node"></a>
   <a href="#"><img src="https://img.shields.io/badge/rust-1.85%2B-dea584?logo=rust&style=flat-square" alt="Rust"></a>
