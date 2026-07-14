@@ -1,6 +1,6 @@
 {
   "name": "@vernonthedev/encryptd",
-  "version": "0.3.0-beta.0",
+  "version": "0.4.0-beta.0",
   "author": "vernonthedev",
   "description": "Rust based Env Encryption Package.",
   "main": "dist/index.js",
