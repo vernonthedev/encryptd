@@ -235,7 +235,7 @@ jobs:
         run: pnpm test
 
       - name: Prepare npm packages
-        run: pnpm exec napi pre-publish
+              run: pnpm exec napi pre-publish --no-gh-release
 
       - name: Upload platform artifact
         uses: actions/upload-artifact@v4
