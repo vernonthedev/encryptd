@@ -3,6 +3,7 @@ napi = { version = "2", features = ["default"] }
 napi-derive = "2"
 aes-gcm = "0.10"
 hex = "0.4"
+sha2 = "0.10"
 
 [build-dependencies]
 napi-build = "2"
