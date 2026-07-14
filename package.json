@@ -3,14 +3,34 @@
   "version": "0.0.1",
   "author": "vernonthedev",
   "description": "Rust based Env Encryption Package.",
-  "main": "src/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "bin": {
-    "secure-env": "dist/cli.js"
+    "secure-env": "src/cli.ts"
   },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "pnpm run build"
+  },
+  "napi": {
+    "name": "secure-env-core",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "x86_64-unknown-linux-gnu",
+        "x86_64-unknown-linux-musl",
+        "x86_64-pc-windows-msvc"
+      ]
+    }
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vernonthedev/encryptd.git"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
