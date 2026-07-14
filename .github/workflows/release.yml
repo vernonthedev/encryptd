@@ -30,7 +30,7 @@ jobs:
           sudo apt-get install -y libssl-dev pkg-config
 
       - name: Build NAPI Rust binary
-        run: npx @napi-rs/cli build --platform --release
+        run: npx @napi-rs/cli build --manifest-path rust/Cargo.toml --platform --release
 
       - name: Build TypeScript
         run: npx tsc
@@ -75,7 +75,7 @@ jobs:
           sudo apt-get install -y libssl-dev pkg-config
 
       - name: Build NAPI Rust binary
-        run: npx @napi-rs/cli build --platform --release
+        run: npx @napi-rs/cli build --manifest-path rust/Cargo.toml --platform --release
 
       - name: Publish platform-specific package
         run: npx @napi-rs/cli publish --platform --release --no-gh-release

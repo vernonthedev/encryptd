@@ -38,6 +38,7 @@ build/
 out/
 lib/
 *.tsbuildinfo
+rust/target/
 
 # ==============================================================================
 # Environment Variables & Secrets

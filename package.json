@@ -10,21 +10,19 @@
   },
   "scripts": {
     "build": "tsc",
-    "napi-build": "npx @napi-rs/cli build --platform --release",
+    "napi-build": "napi build --manifest-path rust/Cargo.toml --platform --release",
     "prepublishOnly": "pnpm run napi-build && pnpm run build",
     "test": "vitest run"
   },
   "napi": {
-    "name": "encryptd",
-    "triples": {
-      "defaults": false,
-      "additional": [
-        "aarch64-apple-darwin",
-        "x86_64-apple-darwin",
-        "x86_64-unknown-linux-gnu",
-        "x86_64-pc-windows-msvc"
-      ]
-    }
+    "binaryName": "encryptd",
+    "cargoCwd": "rust",
+    "targets": [
+      "aarch64-apple-darwin",
+      "x86_64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc"
+    ]
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
