@@ -33,6 +33,7 @@
     "url": "git://github.com/vernonthedev/encryptd.git"
   },
   "devDependencies": {
+    "@napi-rs/cli": "^3.7.3",
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2"
   }
