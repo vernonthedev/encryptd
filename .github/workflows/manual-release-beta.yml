@@ -16,6 +16,8 @@ on:
         required: true
         default: true
 
+# Force workflow re-registration: 2024-07-14
+
 permissions:
   contents: write
   packages: write
