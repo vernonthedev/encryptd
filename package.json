@@ -36,5 +36,10 @@
     "@napi-rs/cli": "^3.7.3",
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2"
-  }
+  },
+  "optionalDependencies": {
+     "@vernonthedev/encryptd-win32-x64-msvc": "0.0.1",
+     "@vernonthedev/encryptd-darwin-arm64": "0.0.1",
+     "@vernonthedev/encryptd-linux-x64-gnu": "0.0.1"
+   }
 }
