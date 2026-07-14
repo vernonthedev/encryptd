@@ -1,23 +1,27 @@
 {
   "name": "@vernonthedev/encryptd",
-  "version": "0.5.0-beta.0",
-  "author": "vernonthedev",
+  "version": "0.0.1",
+  "author": "vernonthedev <techjaja2@gmail.com>",
   "description": "Rust based Env Encryption Package.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "secure-env": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "rust/index.js",
+    "rust/index.d.ts",
+    "rust/*.node",
+    "README.md",
+    "docs"
+  ],
   "scripts": {
     "build": "tsc",
     "napi-build": "napi build --manifest-path rust/Cargo.toml --platform --release",
     "prepublishOnly": "pnpm run napi-build && pnpm run build",
     "test": "vitest run",
-    "changeset": "changeset",
-    "version": "changeset version",
-    "release": "changeset publish",
-    "changelog": "conventional-changelog -p ./.changelogrc.js -i CHANGELOG.md -s -r 0",
-    "changelog:first": "conventional-changelog -p ./.changelogrc.js -i CHANGELOG.md -s -r 0 --first-release"
+    "changelog": "node scripts/generate-changelog.mjs"
   },
   "napi": {
     "binaryName": "encryptd",
@@ -30,20 +34,15 @@
     ]
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/vernonthedev/encryptd.git"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.7.0",
-    "@changesets/cli": "^2.31.0",
     "@napi-rs/cli": "^3.7.3",
     "@types/node": "^26.1.1",
-    "conventional-changelog-cli": "^5.0.0",
-    "conventional-changelog-conventionalcommits": "^10.2.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }

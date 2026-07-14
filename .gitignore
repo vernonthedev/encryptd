@@ -1,7 +1,9 @@
 # ==============================================================================
-# OS & System Files
+# Generated release artifacts
 # ==============================================================================
-.DS_Store
+RELEASE_NOTES.md
+npm/
+
 Thumbs.db
 *.log
 *.tmCommand
