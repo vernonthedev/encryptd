@@ -36,45 +36,50 @@ jobs:
               repo: context.repo.repo,
               workflow_id: 'ci.yml',
               branch: 'main',
+              status: 'completed',
               per_page: 1
             });
             
             if (runs.workflow_runs.length === 0) {
-              core.setFailed('No CI workflow runs found on main branch');
+              core.setFailed('No CI runs found on main branch');
               return;
             }
             
             const latestRun = runs.workflow_runs[0];
-            console.log(`Latest CI run: ${latestRun.html_url}`);
-            console.log(`Status: ${latestRun.status}`);
-            console.log(`Conclusion: ${latestRun.conclusion}`);
-            
-            if (latestRun.status !== 'completed') {
-              core.setFailed('Latest CI run is still in progress. Wait for it to complete.');
-              return;
-            }
+            console.log(`Latest CI run: ${latestRun.html_url} - ${latestRun.conclusion}`);
             
             if (latestRun.conclusion !== 'success') {
-              core.setFailed(`Latest CI run failed (${latestRun.conclusion}). Fix CI before releasing.`);
+              core.setFailed(`Latest CI run failed (${latestRun.conclusion}). Manual release blocked.`);
               return;
             }
             
-            console.log('Latest CI run passed');
+            console.log('Latest CI run passed - proceeding with release');
 
   release:
     name: Create Beta Release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     needs: check-ci
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
     steps:
-      # ─── Checkout with full history for changelog ───
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ─── Setup tools ───
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -90,9 +95,10 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-unknown-linux-gnu
+          targets: ${{ matrix.target }}
 
       - name: Install Linux deps
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config
@@ -100,35 +106,30 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # ─── Configure Git for commit author ───
       - name: Configure Git author
         run: |
           git config user.name "vernonthedev"
           git config user.email "techjaja2@gmail.com"
 
-      # ─── Generate CHANGELOG from ALL conventional commits ───
       - name: Generate full changelog
+        if: matrix.os == 'ubuntu-latest'
         id: changelog
         run: |
-          # Get the last tag (if any)
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           
           if [ -n "$LAST_TAG" ]; then
             echo "Last tag: $LAST_TAG"
-            # Generate changelog since last tag
             pnpm exec conventional-changelog -p ./.changelogrc.js -i CHANGELOG.md -s -r 0 --from $LAST_TAG
           else
             echo "No previous tag found, generating full changelog"
             pnpm exec conventional-changelog -p ./.changelogrc.js -i CHANGELOG.md -s -r 0 --first-release
           fi
           
-          # Read the new changelog entry (what was added)
           NEW_CHANGELOG=$(cat CHANGELOG.md)
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$NEW_CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # ─── Build everything ───
       - name: Build NAPI Rust binary
         run: pnpm napi-build
 
@@ -138,11 +139,10 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-      # ─── Determine version bump from commits ───
       - name: Determine version bump
+        if: matrix.os == 'ubuntu-latest'
         id: version
         run: |
-          # Analyze commits since last tag
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           
           if [ -n "$LAST_TAG" ]; then
@@ -154,22 +154,18 @@ jobs:
           echo "Commits since last tag:"
           echo "$COMMITS"
           
-          # Determine bump: feat! = major, feat = minor, fix = patch
           BUMP="patch"
           echo "$COMMITS" | grep -q "^feat!" && BUMP="major"
           echo "$COMMITS" | grep -q "^feat" && [ "$BUMP" != "major" ] && BUMP="minor"
           echo "$COMMITS" | grep -q "^fix" && [ "$BUMP" = "patch" ] && BUMP="patch"
           
-          # For beta, always patch
           BUMP="patch"
           
           echo "bump=$BUMP" >> $GITHUB_OUTPUT
           
-          # Get current version from package.json
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           
-          # Calculate new version
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
           if [ "$BUMP" = "major" ]; then
             NEW_VERSION="$((MAJOR + 1)).0.0"
@@ -178,16 +174,14 @@ jobs:
           else
             NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
-          # Add beta suffix
           NEW_VERSION="${NEW_VERSION}-beta.0"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      # ─── Update package.json and Cargo.toml versions ───
       - name: Update version files
+        if: matrix.os == 'ubuntu-latest'
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
           
-          # Update package.json
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -195,26 +189,30 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
           
-          # Update rust/Cargo.toml
           sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" rust/Cargo.toml
           
           echo "Updated to version: $NEW_VERSION"
 
-      # ─── Commit version bump + changelog ───
       - name: Commit version bump
+        if: matrix.os == 'ubuntu-latest'
         run: |
           git add package.json rust/Cargo.toml CHANGELOG.md
           git commit -m "chore: release ${{ steps.version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
 
-      # ─── Publish to GitHub Packages (beta tag) ───
-      - name: Publish to GitHub Packages
-        run: pnpm exec napi publish --platform --release --no-gh-release --tag beta
+      - name: Prepare npm packages
+        run: pnpm exec napi pre-publish
+
+      - name: Publish platform package
+        run: |
+          for pkg in npm/*.tgz; do
+            echo "Publishing $pkg"
+            npm publish "$pkg" --registry=https://npm.pkg.github.com --tag=beta
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ─── Create GitHub Release ───
       - name: Create GitHub Release
-        if: ${{ github.event.inputs.createRelease }}
+        if: ${{ github.event.inputs.createRelease && matrix.os == 'ubuntu-latest' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
@@ -226,7 +224,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ─── Push commits back to main ───
       - name: Push to main
+        if: matrix.os == 'ubuntu-latest'
         run: |
           git push origin main
