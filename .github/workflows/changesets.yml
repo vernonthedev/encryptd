@@ -179,7 +179,7 @@ jobs:
           fi
 
       - name: Publish to GitHub Packages
-        run: npm publish --tag ${{ steps.tag.outputs.tag }}
+        run: pnpm publish --tag ${{ steps.tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -187,7 +187,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-package-${{ matrix.os }}
-          path: *.tgz
+          path: "*.tgz"
           retention-days: 1
 
   create-release:
