@@ -21,7 +21,6 @@
     "napi-build": "napi build --manifest-path rust/Cargo.toml --platform --release",
     "prepublishOnly": "pnpm run napi-build && pnpm run build",
     "test": "vitest run",
-    "changelog": "node scripts/generate-changelog.mjs",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish"
