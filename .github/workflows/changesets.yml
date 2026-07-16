@@ -1,0 +1,224 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        type: choice
+        options:
+          - beta
+          - latest
+        required: false
+        default: beta
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  check-ci:
+    name: Check CI Status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI workflow passed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.sha;
+
+            // Wait for CI workflow run to complete
+            let run = null;
+            for (let i = 0; i < 30; i++) {
+              const runs = await github.rest.actions.listWorkflowRunsForRepo({
+                owner,
+                repo,
+                workflow_id: 'ci.yml',
+                head_sha: sha,
+                per_page: 1
+              });
+              
+              run = runs.data.workflow_runs[0];
+              if (run && run.status === 'completed') {
+                break;
+              }
+              
+              console.log(`Waiting for CI to complete... (attempt ${i + 1}/30)`);
+              await new Promise(r => setTimeout(r, 10000));
+            }
+
+            if (!run) {
+              console.log('No CI run found for this commit');
+              process.exit(1);
+            }
+
+            console.log(`CI run: ${run.html_url} - ${run.conclusion}`);
+            if (run.conclusion !== 'success') {
+              console.error('CI did not pass - blocking release');
+              process.exit(1);
+            }
+
+  version:
+    name: Version & Release
+    runs-on: ubuntu-latest
+    needs: check-ci
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      newVersion: ${{ steps.changesets.outputs.newVersion }}
+      changelog: ${{ steps.changesets.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Create version PR or publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm run changeset:version
+          publish: pnpm run changeset:publish
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Build & Publish (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    needs: version
+    if: needs.version.outputs.published == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build NAPI binary
+        run: pnpm napi-build --target ${{ matrix.target }} --platform --release
+
+      - name: Build TypeScript
+        run: pnpm build
+
+      - name: Fix package.json for publish
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            delete pkg.repository;
+            pkg.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'restricted' };
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+
+      - name: Determine npm tag
+        id: tag
+        shell: bash
+        run: |
+          CHANNEL="${{ github.event.inputs.channel || 'beta' }}"
+          echo "tag=$CHANNEL" >> $GITHUB_OUTPUT
+
+      - name: Publish to GitHub Packages
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: pnpm publish --tag ${{ steps.tag.outputs.tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pack artifact
+        run: pnpm pack --pack-destination .
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-${{ matrix.target }}
+          path: "*.tgz"
+          retention-days: 1
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version, release]
+    if: needs.version.outputs.published == 'true'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: npm-package-*
+          path: all-artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.newVersion }}
+          name: v${{ needs.version.outputs.newVersion }}
+          body: ${{ needs.version.outputs.changelog }}
+          draft: false
+          prerelease: ${{ github.event.inputs.channel == 'beta' }}
+          files: all-artifacts/**/*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

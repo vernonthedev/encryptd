@@ -21,7 +21,9 @@
     "napi-build": "napi build --manifest-path rust/Cargo.toml --platform --release",
     "prepublishOnly": "pnpm run napi-build && pnpm run build",
     "test": "vitest run",
-    "changelog": "node scripts/generate-changelog.mjs"
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish"
   },
   "napi": {
     "binaryName": "encryptd",
@@ -41,6 +43,8 @@
     "url": "https://github.com/vernonthedev/encryptd.git"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
     "@napi-rs/cli": "^3.7.3",
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2",
