@@ -75,3 +75,11 @@ junit.xml
 .vite/
 playwright-report/
 test-results/
+
+# ==============================================================================
+# Changelog / Release notes
+# ==============================================================================
+# CHANGELOG.md IS committed -- it is the single source of truth.
+# RELEASE_NOTES.md is an ephemeral scratch file the changelog generator writes
+# per release purely as the GitHub Release body artifact; never commit it.
+RELEASE_NOTES.md
